@@ -4,32 +4,45 @@ defmodule EventViewer do
   can be click, resize or key press events.
   """
 
-  alias ExTermbox.{Constants, EventManager, Event, Window}
-  import ExTermbox.Renderer.View
-
-  @title "Event Viewer (click, resize, or press a key - 'q' to quit)"
+  alias ExTermbox.Bindings, as: Termbox
+  alias ExTermbox.{Cell, Constants, EventManager, Event, Position}
 
   def run do
-    {:ok, _pid} = Window.start_link()
+    Termbox.init()
     {:ok, _pid} = EventManager.start_link()
     :ok = EventManager.subscribe(self())
 
-    Window.update(layout())
+    render_header()
+    Termbox.present()
     loop()
   end
 
   def loop do
     receive do
       {:event, %Event{ch: ?q}} ->
-        :ok = Window.close()
+        :ok = Termbox.shutdown()
 
       {:event, %Event{} = event} ->
-        Window.update(event_view(event))
+        Termbox.clear()
+        render_header()
+        render_event(event)
+        Termbox.present()
         loop()
     end
   end
 
-  def event_view(%Event{
+  def render_header do
+    render_lines(
+      [
+        'ExTermbox Event Viewer',
+        '',
+        '(Click, resize, or press a key to see event diagnostics. <q> to quit.)'
+      ],
+      0
+    )
+  end
+
+  def render_event(%Event{
         type: type,
         mod: mod,
         key: key,
@@ -46,24 +59,33 @@ defmodule EventViewer do
         do: reverse_lookup(Constants.keys(), key),
         else: :none
 
-    layout([
-      table do
-        table_row(values: ["Type", inspect(type), inspect(type_name)])
-        table_row(values: ["Mod", inspect(mod), ""])
-        table_row(values: ["Key", inspect(key), inspect(key_name)])
-        table_row(values: ["Char", inspect(ch), <<ch::utf8>>])
-        table_row(values: ["Width", inspect(w), ""])
-        table_row(values: ["Height", inspect(h), ""])
-        table_row(values: ["X", inspect(x), ""])
-        table_row(values: ["Y", inspect(y), ""])
-      end
-    ])
+    render_lines(
+      [
+        '  Type: ' ++ format(type) ++ ' ' ++ format(type_name),
+        '   Mod: ' ++ format(mod),
+        '   Key: ' ++ format(key) ++ ' ' ++ format(key_name),
+        '  Char: ' ++ format(ch) ++ ' ' ++ format(<<ch::utf8>>),
+        ' Width: ' ++ format(w),
+        'Height: ' ++ format(h),
+        '     X: ' ++ format(x),
+        '     Y: ' ++ format(y)
+      ],
+      4
+    )
   end
 
-  def layout(children \\ []) do
-    view do
-      panel([title: @title, height: :fill], children)
+  defp render_lines(lines, y_origin) do
+    for {line, y} <- Enum.with_index(lines, y_origin), do: render_line(line, y)
+  end
+
+  defp render_line(text, y) do
+    for {ch, x} <- Enum.with_index(text) do
+      :ok = Termbox.put_cell(%Cell{position: %Position{x: x, y: y}, ch: ch})
     end
+  end
+
+  defp format(value) do
+    value |> inspect() |> to_charlist()
   end
 
   def reverse_lookup(map, val) do

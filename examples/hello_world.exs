@@ -4,35 +4,38 @@
 #
 #    mix run examples/hello_world.exs
 
-alias ExTermbox.{EventManager, Event, Window}
-import ExTermbox.Renderer.View
+alias ExTermbox.Bindings, as: Termbox
+alias ExTermbox.{Cell, EventManager, Event, Position}
 
-# This initializes the application, drawing a blank canvas over the
-# terminal.
-{:ok, _pid} = Window.start_link()
+# This initializes the termbox application.
+:ok = Termbox.init()
 
 # In order to react to keyboard, click or resize events, we need to start
 # the event manager and subscribe the current process to any events.
 {:ok, _pid} = EventManager.start_link()
 :ok = EventManager.subscribe(self())
 
-# Next, we define a view. Similar to HTML, views are defined as a tree of
-# nodes. Nodes have attributes (e.g., text: bold) and children (nested
-# content). Every view must start with a root `view` element.
-hello_world_view =
-  view do
-    panel title: "Hello, World!", height: :fill do
-      label(content: "Press 'q' to quit.")
-    end
-  end
+# To render content to the screen, we use `Bindings.put_cell/1`. We pass it
+# %Cell{} structs that each have a `position` and a `ch`.
+#
+# The `position` is a struct representing an (x, y) cartesian coordinate. The
+# top-left-most cell of the screen represents the origin (0, 0).
+#
+# The `ch` should be an integer representing the character (e.g., ?a or 97).
+# In the example, we're using charlists for this reason.
+for {ch, x} <- Enum.with_index('Hello, World!') do
+  :ok = Termbox.put_cell(%Cell{position: %Position{x: x, y: 0}, ch: ch})
+end
 
-# Defining a view only does just that. To render it to the screen, we need to
-# call the `Window.update/1` function, passing our view as the argument.
-:ok = Window.update(hello_world_view)
+for {ch, x} <- Enum.with_index('(Press <q> to quit)') do
+  :ok = Termbox.put_cell(%Cell{position: %Position{x: x, y: 2}, ch: ch})
+end
+
+Termbox.present()
 
 # When a key is pressed, it'll be sent to us by the event manager. Once we
-# receive a 'q' key press, we'll close the application.
+# receive a 'q' key press, we'll shut down the application.
 receive do
   {:event, %Event{ch: ?q}} ->
-    :ok = Window.close()
+    :ok = Termbox.shutdown()
 end

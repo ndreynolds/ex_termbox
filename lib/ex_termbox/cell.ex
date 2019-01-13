@@ -9,16 +9,16 @@ defmodule ExTermbox.Cell do
 
   @type t :: %__MODULE__{
           position: Position.t(),
-          char: non_neg_integer()
+          ch: non_neg_integer()
         }
 
-  @enforce_keys [:position, :char]
+  @enforce_keys [:position, :ch]
   defstruct position: nil,
-            char: nil,
+            ch: nil,
             bg: Constants.colors().default,
             fg: Constants.colors().default
 
   def empty do
-    %Cell{position: nil, char: nil}
+    %Cell{position: nil, ch: nil}
   end
 end

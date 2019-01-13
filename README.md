@@ -3,11 +3,7 @@
 [![Hex.pm](https://img.shields.io/hexpm/v/ex_termbox.svg)](https://hex.pm/packages/ex_termbox)
 [![Hexdocs.pm](https://img.shields.io/badge/api-hexdocs-brightgreen.svg)](https://hexdocs.pm/ex_termbox)
 
-Low-level [termbox](https://github.com/nsf/termbox) bindings and a high-level,
-functional terminal UI kit for Elixir.
-
-The low-level bindings can already be used; the high-level APIs are still under
-active development and subject to change.
+Low-level [termbox](https://github.com/nsf/termbox) bindings for Elixir.
 
 For the API Reference, see: [https://hexdocs.pm/ex_termbox](https://hexdocs.pm/ex_termbox).
 

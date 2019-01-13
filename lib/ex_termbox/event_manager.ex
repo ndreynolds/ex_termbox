@@ -21,7 +21,7 @@ defmodule ExTermbox.EventManager do
       def event_loop do
         receive do
           {:event, %Event{ch: ?q} = event} ->
-            Window.close()
+            Bindings.shutdown()
           {:event, %Event{} = event} ->
             # handle the event and wait for another...
             event_loop()
