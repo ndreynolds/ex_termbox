@@ -2,6 +2,7 @@
 
 [![Hex.pm](https://img.shields.io/hexpm/v/ex_termbox.svg)](https://hex.pm/packages/ex_termbox)
 [![Hexdocs.pm](https://img.shields.io/badge/api-hexdocs-brightgreen.svg)](https://hexdocs.pm/ex_termbox)
+[![Travis CI](https://img.shields.io/travis/ndreynolds/ex_termbox/master.svg)](https://travis-ci.org/ndreynolds/ex_termbox)
 
 Low-level [termbox](https://github.com/nsf/termbox) bindings for Elixir.
 
