@@ -29,11 +29,12 @@ ExTermbox implements the termbox API functions via NIFs:
   * [`change_cell/5`](https://hexdocs.pm/ex_termbox/ExTermbox.Bindings.html#change_cell/5)
   * [`poll_event/1`](https://hexdocs.pm/ex_termbox/ExTermbox.Bindings.html#poll_event/1)
 
-### Hello World with ExTermbox
+### Hello World
 
 Let's go through the bundled [hello world example](./examples/hello_world.exs).
-To follow along, just type the code snippets into an `.exs` file or edit the
-provided one. Run it later with `mix run <file>`.
+To follow along, clone this repo and edit the example. You can also create an
+Elixir script in any Mix project with `ex_termbox` in the dependencies list.
+Later, we'll run the example with `mix run <file>`.
 
 In a real project, you'll probably want to use an OTP application with a proper
 supervision tree, but here we'll keep it as simple as possible.
@@ -107,6 +108,14 @@ end
 You can use this event-handling logic to respond to events any way you
 like---e.g., render different content, switch tabs, resize content, etc.
 
+Finally, run the example like this:
+
+```bash
+$ mix run examples/hello_world.exs
+```
+
+You shuld see the text we rendered and be able to quit with 'q'.
+
 ## Installation
 
 ### From Hex
@@ -127,7 +136,7 @@ application. This should happen the first time you build ExTermbox (e.g., via
 `mix deps.compile`).
 
 So far the build has been tested on macOS and a few Linux distros. Please add
-an issue if you encounter any issues.
+an issue if you encounter any problems with the build.
 
 ### From Source
 
@@ -155,4 +164,4 @@ mix run examples/event_viewer.exs
 ```
 
 If you see the application drawn and can trigger events, you're good to go. Use
-"q" to quit the examples.
+'q' to quit the examples.

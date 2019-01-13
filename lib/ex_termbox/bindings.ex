@@ -12,7 +12,7 @@ defmodule ExTermbox.Bindings do
   automatically, and provides a declarative, HTML-like interface for rendering
   content to the screen. See the repo for details:
 
-  <https://github.com/ndreynolds/ratouille>
+  <https://github.com/ndreynolds/ratatouille>
 
   See also the termbox header file for additional documentation of the functions
   here:
