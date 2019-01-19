@@ -4,6 +4,11 @@ defmodule ExTermbox.Constants do
   formatting attributes or to identify keys passed in an event.
   """
 
+  use Bitwise, only_operators: true
+
+  @type constant :: integer
+
+  @type key :: constant
   @keys %{
     f1: 0xFFFF - 0,
     f2: 0xFFFF - 1,
@@ -91,7 +96,7 @@ defmodule ExTermbox.Constants do
     ctrl_8: 0x7F
   }
 
-  @type color :: 0..8
+  @type color :: constant
   @colors %{
     default: 0x00,
     black: 0x01,
@@ -104,33 +109,38 @@ defmodule ExTermbox.Constants do
     white: 0x08
   }
 
+  @type attribute :: constant
   @attributes %{
     bold: 0x0100,
     underline: 0x0200,
     reverse: 0x0400
   }
 
+  @type event_type :: constant
   @event_types %{
     key: 1,
     resize: 2,
     mouse: 3
   }
 
+  @type error_code :: constant
   @error_codes %{
     unsupported_terminal: -1,
     failed_to_open_tty: -2,
     pipe_trap_error: -3
   }
 
-  @type input_mode :: 0 | 1 | 2 | 4
+  @type input_mode :: constant
   @input_modes %{
     current: 0,
     esc: 1,
+    esc_with_mouse: 1 ||| 4,
     alt: 2,
+    alt_with_mouse: 2 ||| 4,
     mouse: 4
   }
 
-  @type output_mode :: 0..4
+  @type output_mode :: constant
   @output_modes %{
     current: 0,
     normal: 1,
@@ -139,28 +149,160 @@ defmodule ExTermbox.Constants do
     grayscale: 4
   }
 
+  @type hide_cursor :: constant
   @hide_cursor -1
 
+  @doc """
+  Retrieves the mapping of key constants for use with termbox.
+
+  These are based on terminfo constants. Note that there's some overlap
+  of terminfo values. For example, it's not possible to distinguish between
+  `<backspace>` and `ctrl-h`.
+  """
+  @spec keys() :: %{atom => key}
   def keys, do: @keys
-  def key(k), do: Map.fetch!(@keys, k)
 
+  @doc """
+  Retrieves a key constant by name
+
+  ## Examples
+
+      iex> key(:esc)
+      0x1B
+      iex> key(:space)
+      0x20
+
+  """
+  @spec key(atom) :: key
+  def key(name), do: Map.fetch!(@keys, name)
+
+  @doc """
+  Retrieves the mapping of color constants.
+  """
+  @spec colors() :: %{atom => color}
   def colors, do: @colors
-  def color(k), do: Map.fetch!(@colors, k)
 
+  @doc """
+  Retrieves a color constant by name
+
+  ## Examples
+
+      iex> color(:red)
+      0x02
+      iex> color(:blue)
+      0x05
+
+  """
+  @spec color(atom) :: color
+  def color(name), do: Map.fetch!(@colors, name)
+
+  @doc """
+  Retrieves the mapping of attribute constants.
+  """
+  @spec attributes() :: %{atom => attribute}
   def attributes, do: @attributes
-  def attribute(k), do: Map.fetch!(@attributes, k)
 
+  @doc """
+  Retrieves an attribute constant by name
+
+  ## Examples
+
+      iex> attribute(:bold)
+      0x0100
+      iex> attribute(:underline)
+      0x0200
+
+  """
+  @spec attribute(atom) :: attribute
+  def attribute(name), do: Map.fetch!(@attributes, name)
+
+  @doc """
+  Retrieves the mapping of event type constants.
+  """
+  @spec event_types() :: %{atom => event_type}
   def event_types, do: @event_types
-  def event_type(k), do: Map.fetch!(@event_types, k)
 
+  @doc """
+  Retrieves an event type constant by name
+
+  ## Examples
+
+      iex> event_type(:key)
+      0x01
+      iex> event_type(:resize)
+      0x02
+      iex> event_type(:mouse)
+      0x03
+
+  """
+  @spec event_type(atom) :: event_type
+  def event_type(name), do: Map.fetch!(@event_types, name)
+
+  @doc """
+  Retrieves the mapping of error code constants.
+  """
+  @spec error_codes() :: %{atom => error_code}
   def error_codes, do: @error_codes
-  def error_code(k), do: Map.fetch!(@error_codes, k)
 
+  @doc """
+  Retrieves an error code constant by name
+
+  ## Examples
+
+      iex> error_code(:unsupported_terminal)
+      -1
+
+  """
+  @spec error_code(atom) :: error_code
+  def error_code(name), do: Map.fetch!(@error_codes, name)
+
+  @doc """
+  Retrieves the mapping of input mode constants.
+  """
+  @spec input_modes() :: %{atom => input_mode}
   def input_modes, do: @input_modes
-  def input_mode(k), do: Map.fetch!(@input_modes, k)
 
+  @doc """
+  Retrieves an input mode constant by name
+
+  ## Examples
+
+      iex> input_mode(:esc)
+      1
+      iex> input_mode(:esc_with_mouse)
+      5
+
+  """
+  @spec input_mode(atom) :: input_mode
+  def input_mode(name), do: Map.fetch!(@input_modes, name)
+
+  @doc """
+  Retrieves the mapping of output mode constants.
+  """
+  @spec output_modes() :: %{atom => output_mode}
   def output_modes, do: @output_modes
-  def output_mode(k), do: Map.fetch!(@output_modes, k)
 
+  @doc """
+  Retrieves an output mode constant by name
+
+  ## Examples
+
+      iex> output_mode(:term_256)
+      2
+
+  """
+  @spec output_mode(atom) :: output_mode
+  def output_mode(name), do: Map.fetch!(@output_modes, name)
+
+  @doc """
+  Retrieves the hide cursor constant.
+
+  ## Examples
+
+      iex> hide_cursor()
+      -1
+
+  """
+  @spec hide_cursor() :: hide_cursor
   def hide_cursor, do: @hide_cursor
 end
