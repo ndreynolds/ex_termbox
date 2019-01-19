@@ -9,6 +9,7 @@ defmodule EventViewer do
 
   def run do
     Termbox.init()
+    Termbox.select_input_mode(Constants.input_mode(:esc_with_mouse))
     {:ok, _pid} = EventManager.start_link()
     :ok = EventManager.subscribe(self())
 
