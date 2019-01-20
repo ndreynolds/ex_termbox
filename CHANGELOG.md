@@ -8,6 +8,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+## [0.3.2] - 2019-01-20
+### Added
+- Added `:esc_with_mouse` and `:alt_with_mouse` input mode constants.
+- Updated documentation and tests for constants.
+### Fixed
+- Click handling in event viewer demo.
+
 ## [0.3.1] - 2019-01-13
 ### Fixed
 - Updated package paths for c_src.
