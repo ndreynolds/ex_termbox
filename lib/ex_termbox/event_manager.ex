@@ -37,32 +37,42 @@ defmodule ExTermbox.EventManager do
 
   use GenServer
 
-  @name {:global, :extb_event_manager}
-
   # Client API
 
-  def start_link do
-    GenServer.start_link(__MODULE__, :ok, name: @name)
+  @doc """
+  Starts an event manager process linked to the current process.
+
+  Running multiple instances of the event manager process simultaneously is
+  discouraged, as it could crash the NIF or cause unexpected behavior. By
+  default, the process is registered with a fixed name to prevent this.
+  """
+  def start_link(opts \\ []) do
+    server_opts = Keyword.merge([name: __MODULE__], opts)
+
+    GenServer.start_link(__MODULE__, :ok, server_opts)
   end
 
   @doc """
   Subscribes the given pid to future event notifications.
   """
-  def subscribe(subscriber_pid) do
-    GenServer.call(@name, {:subscribe, subscriber_pid})
+  def subscribe(pid \\ __MODULE__, subscriber_pid) do
+    GenServer.call(pid, {:subscribe, subscriber_pid})
   end
 
   # Server Callbacks
 
+  @impl true
   def init(:ok) do
     {:ok, {:ready, MapSet.new()}}
   end
 
+  @impl true
   def handle_call({:subscribe, pid}, _from, {status, recipients}) do
     if status == :ready, do: start_polling()
     {:reply, :ok, {:polling, MapSet.put(recipients, pid)}}
   end
 
+  @impl true
   def handle_info({:event, event_tuple}, {status, recipients}) do
     event = unpack_event(event_tuple)
     notify(recipients, event)
@@ -85,6 +95,7 @@ defmodule ExTermbox.EventManager do
     end
   end
 
-  defp unpack_event({type, mod, key, ch, w, h, x, y}),
-    do: %Event{type: type, mod: mod, key: key, ch: ch, w: w, h: h, x: x, y: y}
+  defp unpack_event({type, mod, key, ch, w, h, x, y}) do
+    %Event{type: type, mod: mod, key: key, ch: ch, w: w, h: h, x: x, y: y}
+  end
 end
