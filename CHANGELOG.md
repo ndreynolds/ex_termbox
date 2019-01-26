@@ -8,6 +8,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+## [0.3.3] - 2019-01-26
+### Added
+- Adds `ExTermbox.EventManager.start_link/1` which supports passing through
+  gen_server options.
+
 ## [0.3.2] - 2019-01-20
 ### Added
 - Added `:esc_with_mouse` and `:alt_with_mouse` input mode constants.
