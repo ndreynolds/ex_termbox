@@ -33,9 +33,11 @@ defmodule ExTermbox.EventManager do
       event_loop()
   """
 
-  alias ExTermbox.{Bindings, Event}
-
   use GenServer
+
+  alias ExTermbox.Event
+
+  @default_bindings ExTermbox.Bindings
 
   # Client API
 
@@ -47,9 +49,9 @@ defmodule ExTermbox.EventManager do
   default, the process is registered with a fixed name to prevent this.
   """
   def start_link(opts \\ []) do
-    server_opts = Keyword.merge([name: __MODULE__], opts)
+    {bindings, server_opts} = Keyword.pop(opts, :bindings, @default_bindings)
 
-    GenServer.start_link(__MODULE__, :ok, server_opts)
+    GenServer.start_link(__MODULE__, bindings, server_opts)
   end
 
   @doc """
@@ -62,31 +64,47 @@ defmodule ExTermbox.EventManager do
   # Server Callbacks
 
   @impl true
-  def init(:ok) do
-    {:ok, {:ready, MapSet.new()}}
+  def init(bindings) do
+    {:ok,
+     %{
+       bindings: bindings,
+       status: :ready,
+       recipients: MapSet.new()
+     }}
   end
 
   @impl true
-  def handle_call({:subscribe, pid}, _from, {status, recipients}) do
-    if status == :ready, do: start_polling()
-    {:reply, :ok, {:polling, MapSet.put(recipients, pid)}}
+  def handle_call({:subscribe, pid}, _from, state) do
+    if state.status == :ready do
+      start_polling(state.bindings)
+    end
+
+    {:reply, :ok,
+     %{
+       state
+       | status: :polling,
+         recipients: MapSet.put(state.recipients, pid)
+     }}
   end
 
   @impl true
-  def handle_info({:event, event_tuple}, {status, recipients}) do
+  def handle_info({:event, event_tuple}, state) do
+    # Unpack and notify subscribers
     event = unpack_event(event_tuple)
-    notify(recipients, event)
-    # Start polling for the next event
-    start_polling()
-    {:noreply, {status, recipients}}
-  end
+    notify(state.recipients, event)
 
-  def handle_info(_, state) do
+    # Start polling for the next event
+    start_polling(state.bindings)
+
     {:noreply, state}
   end
 
-  defp start_polling do
-    Bindings.poll_event(self())
+  def handle_info(_message, state) do
+    {:noreply, state}
+  end
+
+  defp start_polling(bindings) do
+    bindings.poll_event(self())
   end
 
   defp notify(recipients, event) do
