@@ -3,10 +3,10 @@ matrix:
   include:
     - os: linux
       otp_release: 21.0
-      elixir: 1.7
+      elixir: 1.8
     - os: linux
       otp_release: 17.5
-      elixir: 1.5
+      elixir: 1.6
     - os: osx
       language: generic
 before_script:
