@@ -8,6 +8,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+## [0.3.4] - 2019-02-03
+### Added
+- Allows passing alternate termobx bindings to `EventManager.start_link/1`,
+  which makes it possible to test the event manager's behavior without actually
+  calling the NIFs.
+
 ## [0.3.3] - 2019-01-26
 ### Added
 - Adds `ExTermbox.EventManager.start_link/1` which supports passing through
