@@ -39,6 +39,8 @@ defmodule ExTermbox.EventManager do
 
   @default_bindings ExTermbox.Bindings
 
+  @default_server_opts [name: __MODULE__]
+
   # Client API
 
   @doc """
@@ -51,14 +53,16 @@ defmodule ExTermbox.EventManager do
   def start_link(opts \\ []) do
     {bindings, server_opts} = Keyword.pop(opts, :bindings, @default_bindings)
 
-    GenServer.start_link(__MODULE__, bindings, server_opts)
+    server_opts_with_defaults = Keyword.merge(@default_server_opts, server_opts)
+
+    GenServer.start_link(__MODULE__, bindings, server_opts_with_defaults)
   end
 
   @doc """
-  Subscribes the given pid to future event notifications.
+  Subscribes the given subscriber pid to future event notifications.
   """
-  def subscribe(pid \\ __MODULE__, subscriber_pid) do
-    GenServer.call(pid, {:subscribe, subscriber_pid})
+  def subscribe(event_manager_server \\ __MODULE__, subscriber_pid) do
+    GenServer.call(event_manager_server, {:subscribe, subscriber_pid})
   end
 
   # Server Callbacks
