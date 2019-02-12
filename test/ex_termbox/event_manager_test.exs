@@ -19,7 +19,7 @@ defmodule ExTermbox.EventManagerTest do
 
   setup do
     _bindings = start_supervised!(BindingsStub)
-    pid = start_supervised!({EventManager, bindings: BindingsStub})
+    pid = start_supervised!({EventManager, bindings: BindingsStub, name: nil})
 
     %{event_manager: pid}
   end

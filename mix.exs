@@ -12,6 +12,7 @@ defmodule ExTermbox.Mixfile do
       deps: deps(),
       description: description(),
       package: package(),
+      aliases: aliases(),
 
       # Docs
       name: "ExTermbox",
@@ -58,6 +59,13 @@ defmodule ExTermbox.Mixfile do
       maintainers: ["Nick Reynolds"],
       licenses: ["MIT"],
       links: %{"GitHub" => "https://github.com/ndreynolds/ex_termbox"}
+    ]
+  end
+
+  defp aliases do
+    [
+      test: "test --exclude integration",
+      "test.integration": "test --only integration"
     ]
   end
 end

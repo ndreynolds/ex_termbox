@@ -92,9 +92,12 @@ defmodule ExTermbox.EventManager do
   end
 
   @impl true
-  def handle_info({:event, event_tuple}, state) do
-    # Unpack and notify subscribers
-    event = unpack_event(event_tuple)
+  def handle_info({:event, packed_event}, state) when is_tuple(packed_event) do
+    handle_info({:event, unpack_event(packed_event)}, state)
+  end
+
+  def handle_info({:event, %Event{} = event}, state) do
+    # Notify subscribers of the event
     notify(state.recipients, event)
 
     # Start polling for the next event

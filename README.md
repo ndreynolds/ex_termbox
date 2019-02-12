@@ -86,7 +86,8 @@ end
 Since Elixir is a functional language, it's good practice to avoid this sort of
 imperative style in real applications. Instead, you might build and transform a
 canvas defined as map or list of cells. Then, when your canvas is ready for
-rendering, it can be synced to termbox via `put_cell/1` in one sweep.
+rendering, it can be synced to termbox via `put_cell/1` in one sweep. This is
+how the Ratatouille library works.
 
 Until now, we've only updated termbox's internal buffer. To actually render the
 content to the screen, we need to call `present/0`:
