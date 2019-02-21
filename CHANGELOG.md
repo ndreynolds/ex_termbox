@@ -8,6 +8,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+## [0.3.5] - 2019-02-21
+### Fixed
+- Event manager's default server `name`, which makes it possible to use the
+  client API to call the default server without passing a pid.
+### Added
+- Support for sending the event manager `%Event{}` structs in addition to the
+  tuple form that the NIF sends. This provides a convenient way to trigger
+  events manually when testing an ex_termbox application.
+
 ## [0.3.4] - 2019-02-03
 ### Added
 - Allows passing alternate termobx bindings to `EventManager.start_link/1`,
