@@ -65,10 +65,16 @@ defmodule ExTermbox.EventManager do
     GenServer.call(event_manager_server, {:subscribe, subscriber_pid})
   end
 
+  def stop(event_manager_server \\ __MODULE__) do
+    GenServer.stop(event_manager_server)
+  end
+
   # Server Callbacks
 
   @impl true
   def init(bindings) do
+    _ = Process.flag(:trap_exit, true)
+
     {:ok,
      %{
        bindings: bindings,
@@ -80,7 +86,7 @@ defmodule ExTermbox.EventManager do
   @impl true
   def handle_call({:subscribe, pid}, _from, state) do
     if state.status == :ready do
-      start_polling(state.bindings)
+      :ok = start_polling(state.bindings)
     end
 
     {:reply, :ok,
@@ -98,10 +104,10 @@ defmodule ExTermbox.EventManager do
 
   def handle_info({:event, %Event{} = event}, state) do
     # Notify subscribers of the event
-    notify(state.recipients, event)
+    :ok = notify(state.recipients, event)
 
     # Start polling for the next event
-    start_polling(state.bindings)
+    :ok = start_polling(state.bindings)
 
     {:noreply, state}
   end
@@ -110,14 +116,35 @@ defmodule ExTermbox.EventManager do
     {:noreply, state}
   end
 
+  @impl true
+  def terminate(_reason, state) do
+    # Try to cancel polling for events to leave the system in a clean state. If
+    # this fails or `terminate/2` isn't called, it will have to be done later.
+    _ = state.bindings.cancel_poll_event()
+    :ok
+  end
+
   defp start_polling(bindings) do
-    bindings.poll_event(self())
+    case bindings.poll_event(self()) do
+      {:ok, _resource} ->
+        :ok
+
+      {:error, :already_polling} ->
+        with :ok <- bindings.cancel_poll_event(),
+             {:ok, _resource} <- bindings.poll_event(self()),
+             do: :ok
+
+      {:error, unhandled_error} ->
+        {:error, unhandled_error}
+    end
   end
 
   defp notify(recipients, event) do
     for pid <- recipients do
       send(pid, {:event, event})
     end
+
+    :ok
   end
 
   defp unpack_event({type, mod, key, ch, w, h, x, y}) do

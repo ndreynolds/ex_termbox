@@ -8,8 +8,8 @@ defmodule EventViewer do
   alias ExTermbox.{Cell, Constants, EventManager, Event, Position}
 
   def run do
-    Termbox.init()
-    Termbox.select_input_mode(Constants.input_mode(:esc_with_mouse))
+    :ok = Termbox.init()
+    {:ok, _} = Termbox.select_input_mode(Constants.input_mode(:esc_with_mouse))
     {:ok, _pid} = EventManager.start_link()
     :ok = EventManager.subscribe(self())
 
@@ -21,6 +21,7 @@ defmodule EventViewer do
   def loop do
     receive do
       {:event, %Event{ch: ?q}} ->
+        :ok = EventManager.stop()
         :ok = Termbox.shutdown()
 
       {:event, %Event{} = event} ->

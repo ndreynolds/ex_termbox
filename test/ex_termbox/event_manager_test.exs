@@ -8,7 +8,15 @@ defmodule ExTermbox.EventManagerTest do
 
     def start_link(_), do: Agent.start_link(fn -> [] end, name: __MODULE__)
 
-    def poll_event(pid), do: track({:poll_event, pid})
+    def poll_event(pid) do
+      track({:poll_event, pid})
+      {:ok, nil}
+    end
+
+    def cancel_poll_event do
+      track(:cancel_poll_event)
+      :ok
+    end
 
     def calls, do: Agent.get(__MODULE__, & &1)
 

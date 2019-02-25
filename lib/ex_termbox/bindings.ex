@@ -46,10 +46,12 @@ defmodule ExTermbox.Bindings do
   Initializes the termbox library. Must be called before any other bindings are
   called.
 
-  Returns `:ok` on success. On error, returns a tuple `{:error, code}`
-  containing an integer representing a termbox error code.
+  Returns `:ok` on success and otherwise one of the following errors:
+
+  * `{:error, :already_running} - the library was already initialized.
+  * `{:error, code}` - where code is an integer error code from termbox.
   """
-  @spec init :: :ok | {:error, integer()}
+  @spec init :: :ok | {:error, integer() | :already_running}
   def init do
     error("NIF init/0 not loaded")
   end
@@ -57,35 +59,50 @@ defmodule ExTermbox.Bindings do
   @doc """
   Finalizes the termbox library. Should be called when the terminal application
   is exited, and before your program or OTP application stops.
+
+  Returns `:ok` on success and otherwise one of the following errors:
+
+  * `{:error, :not_running} - the library can not be shut down because it is not
+    initialized.
+  * `{:error, code}` - where `code` is an integer error code from termbox.
   """
-  @spec shutdown :: :ok | {:error, integer()}
+  @spec shutdown :: :ok | {:error, integer() | :not_running}
   def shutdown do
     error("NIF shutdown/0 not loaded")
   end
 
   @doc """
-  Returns the width of the terminal window in characters. Undefined before
-  `init/0` is called.
+  Returns `{:ok, width}` where `width` is the width of the terminal window in
+  characters.
+
+  If termbox was not initialized, returns `{:error, :not_running}` (call
+  `init/0` first).
   """
-  @spec width :: integer()
+  @spec width :: {:ok, integer()} | {:error, :not_running}
   def width do
     error("NIF width/0 not loaded")
   end
 
   @doc """
-  Returns the height of the terminal window in characters. Undefined before
-  `init/0` is called.
+  Returns `{:ok, height}` where `height` is the height of the terminal window in
+  characters.
+
+  If termbox was not initialized, returns `{:error, :not_running}` (call
+  `init/0` first).
   """
-  @spec height :: integer()
+  @spec height :: {:ok, integer()} | {:error, :not_running}
   def height do
     error("NIF height/0 not loaded")
   end
 
   @doc """
-  Clears the internal back buffer, setting the foreground and background to
-  the defaults, or those specified by `set_clear_attributes/2`.
+  Clears the internal back buffer, setting the foreground and background to the
+  defaults, or those specified by `set_clear_attributes/2`.
+
+  Returns `:ok` if successful. If termbox was not initialized, returns
+  `{:error, :not_running}` (call `init/0` first).
   """
-  @spec clear :: :ok
+  @spec clear :: :ok | {:error, :not_running}
   def clear do
     error("NIF clear/0 not loaded")
   end
@@ -93,25 +110,36 @@ defmodule ExTermbox.Bindings do
   @doc """
   Sets the default foreground and background colors used when `clear/0` is
   called.
+
+  Returns `:ok` if successful. If termbox was not initialized, returns
+  `{:error, :not_running}` (call `init/0` first).
   """
-  @spec set_clear_attributes(Constants.color(), Constants.color()) :: :ok
+  @spec set_clear_attributes(Constants.color(), Constants.color()) ::
+          :ok | {:error, :not_running}
   def set_clear_attributes(_fg, _bg) do
     error("NIF set_clear_attributes/2 not loaded")
   end
 
   @doc """
   Synchronizes the internal back buffer and the terminal.
+
+  Returns `:ok` if successful. If termbox was not initialized, returns
+  `{:error, :not_running}` (call `init/0` first).
   """
-  @spec present :: :ok
+  @spec present :: :ok | {:error, :not_running}
   def present do
     error("NIF present/0 not loaded")
   end
 
   @doc """
-  Sets the position of the cursor to the coordinates `(x, y)`, or hide the cursor
-  by passing `ExTermbox.Constants.hide_cursor/0` for both x and y.
+  Sets the position of the cursor to the coordinates `(x, y)`, or hide the
+  cursor by passing `ExTermbox.Constants.hide_cursor/0` for both x and y.
+
+  Returns `:ok` if successful. If termbox was not initialized, returns
+  `{:error, :not_running}` (call `init/0` first).
   """
-  @spec set_cursor(non_neg_integer(), non_neg_integer()) :: :ok
+  @spec set_cursor(non_neg_integer(), non_neg_integer()) ::
+          :ok | {:error, :not_running}
   def set_cursor(_x, _y) do
     error("NIF set_cursor/2 not loaded")
   end
@@ -119,8 +147,11 @@ defmodule ExTermbox.Bindings do
   @doc """
   Puts a cell in the internal back buffer at the cell's position. Note that this is
   implemented in terms of `change_cell/5`.
+
+  Returns `:ok` if successful. If termbox was not initialized, returns
+  `{:error, :not_running}` (call `init/0` first).
   """
-  @spec put_cell(Cell.t()) :: :ok
+  @spec put_cell(Cell.t()) :: :ok | {:error, :not_running}
   def put_cell(%Cell{position: %Position{x: x, y: y}, ch: ch, fg: fg, bg: bg}) do
     change_cell(x, y, ch, fg, bg)
   end
@@ -129,6 +160,9 @@ defmodule ExTermbox.Bindings do
   Changes the attributes of the cell at the specified position in the internal
   back buffer. Prefer using `put_cell/1`, which supports passing an
   `ExTermbox.Cell` struct.
+
+  Returns `:ok` if successful. If termbox was not initialized, returns
+  `{:error, :not_running}` (call `init/0` first).
   """
   @spec change_cell(
           non_neg_integer(),
@@ -136,7 +170,7 @@ defmodule ExTermbox.Bindings do
           non_neg_integer(),
           Constants.color(),
           Constants.color()
-        ) :: :ok
+        ) :: :ok | {:error, :not_running}
   def change_cell(_x, _y, _ch, _fg, _bg) do
     error("NIF change_cell/5 not loaded")
   end
@@ -146,9 +180,12 @@ defmodule ExTermbox.Bindings do
   See the [termbox source](https://github.com/nsf/termbox/blob/master/src/termbox.h)
   for additional documentation.
 
-  Returns an integer representing the input mode.
+  Returns `{:ok, input_mode}` when successful, where `input_mode` is an integer
+  representing the current mode. If termbox was not initialized, returns
+  `{:error, :not_running}` (call `init/0` first).
   """
-  @spec select_input_mode(Constants.input_mode()) :: integer()
+  @spec select_input_mode(Constants.input_mode()) ::
+          {:ok, integer()} | {:error, :not_running}
   def select_input_mode(_mode) do
     error("NIF select_input_mode/1 not loaded")
   end
@@ -158,9 +195,12 @@ defmodule ExTermbox.Bindings do
   See the [termbox source](https://github.com/nsf/termbox/blob/master/src/termbox.h)
   for additional documentation.
 
-  Returns an integer representing the output mode.
+  Returns `{:ok, output_mode}` when successful, where `output_mode` is an
+  integer representing the current mode. If termbox was not initialized, returns
+  `{:error, :not_running}` (call `init/0` first).
   """
-  @spec select_output_mode(Constants.output_mode()) :: integer()
+  @spec select_output_mode(Constants.output_mode()) ::
+          {:ok, integer()} | {:error, :not_running}
   def select_output_mode(_mode) do
     error("NIF select_output_mode/1 not loaded")
   end
@@ -176,17 +216,49 @@ defmodule ExTermbox.Bindings do
   scheduler.
 
   Note that the `ExTermbox.EventManager` is an abstraction over this function
-  that listens continuously for events and supports multiple subscriptions.
+  that listens continuously for events and supports multiple subscriptions. It's
+  recommended to use that abstraction and not to call this directly.
 
-  Returns a resource representing a handle for the poll thread.
+  If successful, returns `{:ok, resource}`, where `resource` is an Erlang
+  resource object representing a handle for the poll thread.
+
+  ### Timeouts
+
+  You might notice that there's no NIF binding for `tb_peek_event` (which
+  accepts a timeout). This function can also be used to achieve a timeout:
+
+      {:ok, _resource} = Bindings.poll_event(self())
+
+      receive do
+        {:event, event} ->
+          # handle the event...
+      after
+        1_000 ->
+          :ok = Bindings.cancel_poll_event(self())
+          # do something else...
+      end
+
   """
-  @spec poll_event(pid()) :: reference()
-  def poll_event(pid) when is_pid(pid) do
+  @spec poll_event(pid()) ::
+          {:ok, reference()} | {:error, :not_running | :already_polling}
+  def poll_event(recipient_pid) when is_pid(recipient_pid) do
     error("NIF poll_event/1 not loaded")
   end
 
   @doc """
-  *Not yet implemented.* For most cases, `poll_event/1` should be sufficient.
+  Cancels a previous call to `poll_event/1` and blocks until polling has
+  stopped. The polling loop checks every 10 ms for a stop condition, so calls
+  can take up to 10 ms to return.
+
+  This can be useful, for example, if the `poll_event` recipient process dies
+  and the polling needs to be restarted by another process.
+  """
+  @spec cancel_poll_event() :: :ok | {:error, :not_running | :not_polling}
+  def cancel_poll_event do
+    error("NIF cancel_poll_event/1 not loaded")
+  end
+
+  @doc """
   """
   def peek_event(pid, _timeout) when is_pid(pid) do
     error("NIF peek_event/1 not loaded")

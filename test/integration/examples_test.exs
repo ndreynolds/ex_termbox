@@ -13,19 +13,6 @@ defmodule ExTermbox.Integration.ExamplesTest do
   @examples_root Path.join(Path.dirname(__ENV__.file), "../../examples")
   @examples Path.wildcard("#{@examples_root}/*.exs")
 
-  setup do
-    on_exit(fn ->
-      event_mgr = event_manager()
-
-      if is_pid(event_mgr) do
-        :ok = GenServer.stop(event_mgr, :normal)
-      end
-    end)
-
-    :ok
-  end
-
-  @tag :integration
   test "at least one example is found" do
     assert [_ | _] = @examples
   end

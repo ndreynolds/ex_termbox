@@ -37,5 +37,6 @@ Termbox.present()
 # receive a 'q' key press, we'll shut down the application.
 receive do
   {:event, %Event{ch: ?q}} ->
+    :ok = EventManager.stop()
     :ok = Termbox.shutdown()
 end
