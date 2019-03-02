@@ -46,9 +46,9 @@ defmodule ExTermbox.Mixfile do
     [
       files: ~w(
         c_src/termbox_bindings.c
-        c_src/termbox/src
+        c_src/termbox/src/*.{inl,c,h}
+        c_src/termbox/**/wscript
         c_src/termbox/waf
-        c_src/termbox/wscript
         lib
         priv/.keep
         Makefile
