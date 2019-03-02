@@ -8,13 +8,13 @@ defmodule ExTermbox.EventManagerTest do
 
     def start_link(_), do: Agent.start_link(fn -> [] end, name: __MODULE__)
 
-    def poll_event(pid) do
-      track({:poll_event, pid})
-      {:ok, nil}
+    def start_polling(pid) do
+      track({:start_polling, pid})
+      {:ok, :fake_resource}
     end
 
-    def cancel_poll_event do
-      track(:cancel_poll_event)
+    def stop_polling do
+      track(:stop_polling)
       :ok
     end
 
@@ -48,7 +48,7 @@ defmodule ExTermbox.EventManagerTest do
       assert :ok = EventManager.subscribe(pid, self())
       assert :ok = EventManager.subscribe(pid, self())
 
-      assert [{:poll_event, pid}] = BindingsStub.calls()
+      assert [{:start_polling, pid}] = BindingsStub.calls()
     end
 
     test "notifies subscriber of polled events", %{event_manager: pid} do

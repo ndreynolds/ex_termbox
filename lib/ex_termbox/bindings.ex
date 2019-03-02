@@ -23,6 +23,47 @@ defmodule ExTermbox.Bindings do
   normally replaced by the natively-implemented functions at load. If you're
   seeing this message, it means the native bindings could not be loaded. Please
   open an issue with the error and relevant system information.
+
+  ### Event Polling
+
+  The event polling API differs slightly from the termbox API in order to make
+  it in the Erlang ecosystem. Instead of blocking poll calls, it uses
+  asynchronous message passing to deliver events to the caller.
+
+  It's recommended to use the `ExTermbox.EventManager` gen_server to subscribe
+  to terminal events instead of using these bindings directly. It supports
+  multiple subscriptions and more gracefully handles errors.
+
+  #### Implementation Notes
+
+  In the `start_polling/1` NIF, an OS-level thread is created which performs the
+  blocking event polling (i.e., a `select` call). This allows the NIF to return
+  quickly and avoid causing the scheduler too much trouble. It would be very bad
+  to block the scheduler thread until an event is received.
+
+  While using threads solves this problem, it unfortunately also introduces new
+  ones. The bindings implement some locking mechanisms to try to coordinate
+  threading logic and prevent polling from occurring simultaneously, but this
+  sort of logic is hard to get right (one of the reasons we use Elixir/Erlang).
+  No issues are currently known, but please report any you happen to encounter.
+
+  #### Timeouts
+
+  You might have noticed that there's no binding for `tb_peek_event` (which
+  accepts a timeout). That's because it's easy enough to implement a timeout
+  ourselves with `start_polling/1` and `receive` with `after`, e.g.:
+
+      {:ok, _resource} = Bindings.start_polling(self())
+
+      receive do
+        {:event, event} ->
+          # handle the event...
+      after
+        1_000 ->
+          :ok = Bindings.stop_polling(self())
+          # do something else...
+      end
+
   """
 
   alias ExTermbox.{Cell, Constants, Position}
@@ -206,62 +247,45 @@ defmodule ExTermbox.Bindings do
   end
 
   @doc """
-  Polls for a terminal event asynchronously. The function accepts a PID as
-  argument and returns immediately. When an event is received, it's sent to the
-  specified process. To receive additional events, it's necessary to call this
-  function again.
-
-  In the underlying NIF, a thread is created which performs the blocking event
-  poll. This allows the NIF to return quickly and avoid causing trouble for the
-  scheduler.
-
-  Note that the `ExTermbox.EventManager` is an abstraction over this function
-  that listens continuously for events and supports multiple subscriptions. It's
-  recommended to use that abstraction and not to call this directly.
+  Starts polling for terminal events asynchronously. The function accepts a PID
+  as argument and returns immediately. When an event is received, it's sent to
+  the specified process. It continues polling until either `stop_polling/0` or
+  `shutdown/0` is called. An error is returned when this function is called
+  again before polling has been stopped.
 
   If successful, returns `{:ok, resource}`, where `resource` is an Erlang
-  resource object representing a handle for the poll thread.
+  resource object representing a handle for the poll thread. Otherwise, one of
+  the following errors is returned:
 
-  ### Timeouts
-
-  You might notice that there's no NIF binding for `tb_peek_event` (which
-  accepts a timeout). This function can also be used to achieve a timeout:
-
-      {:ok, _resource} = Bindings.poll_event(self())
-
-      receive do
-        {:event, event} ->
-          # handle the event...
-      after
-        1_000 ->
-          :ok = Bindings.cancel_poll_event(self())
-          # do something else...
-      end
-
+  * `{:error, :not_running} - termbox should be initialized before events are
+    polled.
+  * `{:error, :already_polling}` - `start_polling/1` was previously called and
+    has not been since stopped.
   """
-  @spec poll_event(pid()) ::
+  @spec start_polling(pid()) ::
           {:ok, reference()} | {:error, :not_running | :already_polling}
-  def poll_event(recipient_pid) when is_pid(recipient_pid) do
-    error("NIF poll_event/1 not loaded")
+  def start_polling(recipient_pid) when is_pid(recipient_pid) do
+    error("NIF start_polling/1 not loaded")
   end
 
   @doc """
-  Cancels a previous call to `poll_event/1` and blocks until polling has
+  Cancels a previous call to `start_polling/1` and blocks until polling has
   stopped. The polling loop checks every 10 ms for a stop condition, so calls
   can take up to 10 ms to return.
 
-  This can be useful, for example, if the `poll_event` recipient process dies
-  and the polling needs to be restarted by another process.
-  """
-  @spec cancel_poll_event() :: :ok | {:error, :not_running | :not_polling}
-  def cancel_poll_event do
-    error("NIF cancel_poll_event/1 not loaded")
-  end
+  This can be useful, for example, if the `start_polling/1` recipient process
+  dies and the polling needs to be restarted by another process.
 
-  @doc """
+  Returns `:ok` on success and otherwise one of the following errors:
+
+  * `{:error, :not_running} - termbox should be initialized before any polling
+    functions are called.
+  * `{:error, :not_polling} - polling cannot be stopped because it was already
+    stopped or never started.
   """
-  def peek_event(pid, _timeout) when is_pid(pid) do
-    error("NIF peek_event/1 not loaded")
+  @spec stop_polling() :: :ok | {:error, :not_running | :not_polling}
+  def stop_polling do
+    error("NIF stop_polling/1 not loaded")
   end
 
   defp error(reason), do: :erlang.nif_error(reason)

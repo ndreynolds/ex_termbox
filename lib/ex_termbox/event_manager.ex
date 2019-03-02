@@ -106,9 +106,6 @@ defmodule ExTermbox.EventManager do
     # Notify subscribers of the event
     :ok = notify(state.recipients, event)
 
-    # Start polling for the next event
-    :ok = start_polling(state.bindings)
-
     {:noreply, state}
   end
 
@@ -118,20 +115,20 @@ defmodule ExTermbox.EventManager do
 
   @impl true
   def terminate(_reason, state) do
-    # Try to cancel polling for events to leave the system in a clean state. If
+    # Try to stop polling for events to leave the system in a clean state. If
     # this fails or `terminate/2` isn't called, it will have to be done later.
-    _ = state.bindings.cancel_poll_event()
+    _ = state.bindings.stop_polling()
     :ok
   end
 
   defp start_polling(bindings) do
-    case bindings.poll_event(self()) do
+    case bindings.start_polling(self()) do
       {:ok, _resource} ->
         :ok
 
       {:error, :already_polling} ->
-        with :ok <- bindings.cancel_poll_event(),
-             {:ok, _resource} <- bindings.poll_event(self()),
+        with :ok <- bindings.stop_polling(),
+             {:ok, _resource} <- bindings.start_polling(self()),
              do: :ok
 
       {:error, unhandled_error} ->
