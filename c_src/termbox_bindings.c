@@ -46,11 +46,11 @@ ErlNifMutex *MUTEX = NULL;
 // easy to find the owner of an unreleased lock in debug mode.
 #ifdef EXTB_DEBUG
 
-#define LOCK(label)                                                             \
-  printf("LOCK (%s)\n", label);                                                 \
+#define LOCK(label)                                                            \
+  printf("LOCK (%s)\n", label);                                                \
   enif_mutex_lock(MUTEX)
-#define UNLOCK(label)                                                           \
-  printf("UNLOCK (%s)\n", label);                                               \
+#define UNLOCK(label)                                                          \
+  printf("UNLOCK (%s)\n", label);                                              \
   enif_mutex_unlock(MUTEX)
 
 #else
@@ -274,7 +274,7 @@ void extb_poll_state_destructor(ErlNifEnv *env, void *arg) {
 }
 
 static ERL_NIF_TERM extb_start_polling(ErlNifEnv *env, int argc,
-                                    const ERL_NIF_TERM argv[]) {
+                                       const ERL_NIF_TERM argv[]) {
   LOCK("start_polling");
 
   // Only one event polling thread may run at a time.
@@ -312,7 +312,7 @@ static ERL_NIF_TERM extb_start_polling(ErlNifEnv *env, int argc,
 }
 
 static ERL_NIF_TERM extb_stop_polling(ErlNifEnv *env, int argc,
-                                           const ERL_NIF_TERM argv[]) {
+                                      const ERL_NIF_TERM argv[]) {
   LOCK("stop_polling");
 
   if (!RUNNING) {
