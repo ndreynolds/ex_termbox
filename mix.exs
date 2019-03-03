@@ -4,7 +4,7 @@ defmodule ExTermbox.Mixfile do
   def project do
     [
       app: :ex_termbox,
-      version: "0.3.5",
+      version: "1.0.0",
       elixir: "~> 1.6",
       start_permanent: Mix.env() == :prod,
       compilers: [:elixir_make | Mix.compilers()],
