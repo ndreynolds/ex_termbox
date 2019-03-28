@@ -7,7 +7,13 @@ defmodule ExTermbox.Mixfile do
       version: "1.0.0",
       elixir: "~> 1.6",
       start_permanent: Mix.env() == :prod,
-      compilers: [:elixir_make | Mix.compilers()],
+      compilers: [:elixir_make, :rustler | Mix.compilers()],
+      rustler_crates: [
+        termbox_bindings: [
+          path: "native/termbox_bindings",
+          mode: :debug
+        ]
+      ],
       make_clean: ["clean"],
       deps: deps(),
       description: description(),
@@ -32,6 +38,7 @@ defmodule ExTermbox.Mixfile do
   defp deps do
     [
       {:elixir_make, "~> 0.4", runtime: false},
+      {:rustler, "~> 0.20"},
       {:ex_doc, "~> 0.19", only: :dev, runtime: false},
       {:dialyze, "~> 0.2.0", only: :dev},
       {:credo, "~> 1.0", only: [:dev, :test], runtime: false}

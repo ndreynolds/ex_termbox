@@ -68,20 +68,7 @@ defmodule ExTermbox.Bindings do
 
   alias ExTermbox.{Cell, Constants, Position}
 
-  @on_load :load_nifs
-
-  def load_nifs do
-    case :code.priv_dir(:ex_termbox) do
-      {:error, _} = err ->
-        err
-
-      path ->
-        path
-        |> Path.join("termbox_bindings")
-        |> to_charlist()
-        |> :erlang.load_nif(0)
-    end
-  end
+  use Rustler, otp_app: :ex_termbox, crate: :termbox_bindings
 
   @doc """
   Initializes the termbox library. Must be called before any other bindings are

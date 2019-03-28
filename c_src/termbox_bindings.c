@@ -136,7 +136,7 @@ static ERL_NIF_TERM extb_set_clear_attributes(ErlNifEnv *env, int argc,
   enif_get_uint(env, argv[0], &fg);
   enif_get_uint(env, argv[1], &bg);
 
-  tb_set_clear_attributes((uint32_t)fg, (uint32_t)bg);
+  tb_set_clear_attributes((uint16_t)fg, (uint16_t)bg);
   return extb_ok(env);
 }
 

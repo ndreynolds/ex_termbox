@@ -147,4 +147,8 @@ defmodule ExTermbox.EventManager do
   defp unpack_event({type, mod, key, ch, w, h, x, y}) do
     %Event{type: type, mod: mod, key: key, ch: ch, w: w, h: h, x: x, y: y}
   end
+
+  defp unpack_event({type, mod, key, ch, {w, h}, {x, y}}) do
+    %Event{type: type, mod: mod, key: key, ch: ch, w: w, h: h, x: x, y: y}
+  end
 end
