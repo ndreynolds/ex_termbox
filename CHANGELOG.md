@@ -6,6 +6,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.0.1] - 2020-03-15
+### Changed
+- Updated dependencies (elixir_make, credo).
+
 ## [1.0.0] - 2019-03-03
 The release includes small breaking changes to the termbox bindings API in order
 to make working with the NIFs safer.
