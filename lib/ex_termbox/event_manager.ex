@@ -1,20 +1,23 @@
 defmodule ExTermbox.EventManager do
   @moduledoc """
-  This module implements an event manager that notifies subscribers of the
+  This module implements an event manager that notifies subscribers of
   keyboard, mouse and resize events received from the termbox API.
 
-  It works by running a poll loop that calls out to the NIFs in
-  `ExTermbox.Bindings`:
+  Internally, the event manager is managing a NIF-based polling routine and
+  fanning out polled events to subscribers. It works likes this:
 
-    1. The `ExTermbox.Bindings.poll_event/1` NIF is called with the event
+    1. The `ExTermbox.Bindings.start_polling/1` NIF is called with the event
        manager's pid.
-    2. The NIF creates a new thread for the blocking poll routine and
+    2. The NIF creates a background thread for the blocking polling routine and
        immediately returns with a resource representing a handle for the thread.
-    3. The thread blocks until an event is received (e.g., a keypress), at which
-       point it sends a message to the event manager with the event data and
-       exits.
-    4. The event manager notifies its subscribers of the event and returns to
-       step 1.
+    3. When the polling routine receives an event (e.g., a keypress), it sends
+       a message to the event manager with the event data, and then continues
+       polling for the next event.
+    4. The event manager receives event data from the background thread and
+       notifies all of its subscribers of the event. Steps 3 and 4 are repeated
+       for each event.
+    5. When the event manager is terminated, `ExTermbox.Bindings.stop_polling/0`
+       is called to stop polling and terminate the background thread.
 
   Example Usage:
 
