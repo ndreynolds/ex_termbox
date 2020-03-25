@@ -6,6 +6,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.0.2] - 2020-03-24
+### Fixed
+- Compilation errors with 1.0.1 tar (reverted) due to bad file permissions.
+
 ## [1.0.1] - 2020-03-15
 ### Changed
 - Updated dependencies (elixir_make, credo).
