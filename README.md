@@ -32,7 +32,17 @@ ExTermbox implements the termbox API functions via NIFs:
 ### Hello World
 
 Let's go through the bundled [hello world example](./examples/hello_world.exs).
-To follow along, clone this repo and edit the example. You can also create an
+To follow along, clone this repo and edit the example.
+
+This repository makes use of [Git submodules](https://git-scm.com/book/en/v2/Git-Tools-Submodules), so make sure you include them in your clone. In recent versions of git, this can be accomplished by including the `--recursive` flag, e.g.
+
+```bash
+git clone --recursive git@github.com:ndreynolds/ex_termbox.git
+```
+
+When the clone is complete, the `c_src/termbox/` directory should have files in it.
+
+You can also create an
 Elixir script in any Mix project with `ex_termbox` in the dependencies list.
 Later, we'll run the example with `mix run <file>`.
 
