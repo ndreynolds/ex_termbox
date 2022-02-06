@@ -8,6 +8,7 @@ defmodule ExTermbox.Mixfile do
       elixir: "~> 1.6",
       start_permanent: Mix.env() == :prod,
       compilers: [:elixir_make | Mix.compilers()],
+      make_targets: ["all"],
       make_clean: ["clean"],
       deps: deps(),
       description: description(),
@@ -31,7 +32,7 @@ defmodule ExTermbox.Mixfile do
   # Run "mix help deps" to learn about dependencies.
   defp deps do
     [
-      {:elixir_make, "~> 0.4", runtime: false},
+      {:elixir_make, "~> 0.6", runtime: false},
       {:ex_doc, "~> 0.19", only: :dev, runtime: false},
       {:dialyze, "~> 0.2.0", only: :dev},
       {:credo, "~> 1.0", only: [:dev, :test], runtime: false}
