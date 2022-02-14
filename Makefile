@@ -1,27 +1,44 @@
+PREFIX = $(MIX_APP_PATH)/priv
+BUILD  = $(MIX_APP_PATH)/obj
+
 TERMBOX_PATH = c_src/termbox
-TERMBOX_BUILD = $(TERMBOX_PATH)/build/src
+TERMBOX_BUILD = $(MIX_APP_PATH)/termbox_build
 
-ERLANG_INCLUDE_PATH = $(shell erl -eval 'io:format("~s", [lists:concat([code:root_dir(), "/erts-", erlang:system_info(version), "/include"])])' -s init stop -noshell)
-
-CFLAGS += -I$(ERLANG_INCLUDE_PATH) -I$(TERMBOX_PATH)/src -fPIC
-LDFLAGS += -shared
-
-SOURCES = c_src/termbox_bindings.c $(TERMBOX_BUILD)/libtermbox.a
-
-ifeq ($(shell uname),Darwin)
+ifeq ($(CROSSCOMPILE),)
+    # Normal build. Set shared library flags according to the platform.
+    ifeq ($(shell uname),Darwin)
 	LDFLAGS += -dynamiclib -undefined dynamic_lookup
+    endif
+    ifeq ($(shell uname -s),Linux)
+        LDFLAGS += -fPIC -shared
+        CFLAGS += -fPIC
+    endif
+else
+    # Crosscompiled build. Assume Linux flags
+    LDFLAGS += -fPIC -shared
+    CFLAGS += -fPIC
 endif
 
-all: priv/termbox_bindings.so
+NIF_CFLAGS += -I$(ERTS_INCLUDE_DIR) -I$(TERMBOX_PATH)/src
+
+SOURCES = c_src/termbox_bindings.c $(TERMBOX_BUILD)/src/libtermbox.a
+
+calling_from_make:
+	mix compile
+
+all: $(PREFIX)/termbox_bindings.so
 	@:
 
-$(TERMBOX_BUILD)/libtermbox.%:
-	cd $(TERMBOX_PATH) && CFLAGS=-fPIC ./waf configure --prefix=. && ./waf
+$(TERMBOX_BUILD)/src/libtermbox.%: $(TERMBOX_BUILD)
+	cd $(TERMBOX_PATH) && CFLAGS="$(CFLAGS)" ./waf configure --prefix=. -o $(TERMBOX_BUILD) && ./waf
 
-priv/termbox_bindings.so: $(SOURCES)
-	$(CC) $(CFLAGS) $(LDFLAGS) -o $@ $(SOURCES)
+$(PREFIX)/termbox_bindings.so: $(SOURCES) $(PREFIX)
+	$(CC) $(CFLAGS) $(NIF_CFLAGS) $(LDFLAGS) -o $@ $(SOURCES)
+
+$(PREFIX) $(TERMBOX_BUILD):
+	mkdir -p $@
 
 clean:
-	rm -rf $(TERMBOX_BUILD) priv/termbox_bindings.so
+	rm -rf $(TERMBOX_BUILD) $(PREFIX)/termbox_bindings.so
 
-.PHONY: all clean
+.PHONY: calling_from_make all clean
