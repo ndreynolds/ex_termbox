@@ -30,7 +30,7 @@ all: $(PREFIX)/termbox_bindings.so
 	@:
 
 $(TERMBOX_BUILD)/src/libtermbox.%: $(TERMBOX_BUILD)
-	cd $(TERMBOX_PATH) && CFLAGS="$(CFLAGS)" ./waf configure --prefix=. -o $(TERMBOX_BUILD) && ./waf
+	cd $(TERMBOX_PATH) && CFLAGS="$(CFLAGS)" waf configure --prefix=. -o $(TERMBOX_BUILD) && waf
 
 $(PREFIX)/termbox_bindings.so: $(SOURCES) $(PREFIX)
 	$(CC) $(CFLAGS) $(NIF_CFLAGS) $(LDFLAGS) -o $@ $(SOURCES)
